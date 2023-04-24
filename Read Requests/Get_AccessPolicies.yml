@@ -1,0 +1,31 @@
+---
+- name: Get Access Policies from Cisco FTD
+  hosts: FTD_group
+  connection: network_cli
+  gather_facts: no
+
+  vars:
+    ftd_username: "{{ tower_ftd_username }}"
+    ftd_password: "{{ tower_ftd_password }}"
+    ftd_host: "{{ tower_ftd_host }}"
+    
+  tasks:
+    - name: Login to FTD
+      iosxr_login:
+        provider:
+          host: "{{ ftd_host }}"
+          username: "{{ ftd_username }}"
+          password: "{{ ftd_password }}"
+        timeout: 30
+        transport: cli
+        auth_pass: "{{ ftd_password }}"
+        
+    - name: Get Access Policies
+      iosxr_command:
+        commands:
+          - show access-policy
+      register: access_policies
+      
+    - name: Display Access Policies
+      debug:
+        var: access_policies.stdout_lines
