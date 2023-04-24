@@ -1,0 +1,23 @@
+---
+- name: Get Access Control Rules from Cisco FTD Firewall
+  hosts: FTD_group
+  gather_facts: no
+  connection: network_cli
+  vars:
+    ftd_host: "{{ tower_job_extra_vars.ftd_host }}"
+    ftd_username: "{{ tower_job_extra_vars.ftd_username }}"
+    ftd_password: "{{ tower_job_extra_vars.ftd_password }}"
+  tasks:
+    - name: Get Access Control Rules
+      ios_command:
+        commands:
+          - show access-list
+        host: "{{ ftd_host }}"
+        username: "{{ ftd_username }}"
+        password: "{{ ftd_password }}"
+        provider: "{{ {'host': ftd_host, 'username': ftd_username, 'password': ftd_password} }}"
+      register: access_rules
+
+    - name: Display Access Control Rules
+      debug:
+        var: access_rules.stdout_lines
