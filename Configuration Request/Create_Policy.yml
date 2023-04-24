@@ -1,0 +1,53 @@
+- name: Post Access Control Policy to Cisco FTD
+  hosts:  FTD_group
+  gather_facts: no
+  connection: httpapi
+  tasks:
+    - name: Get Access Policies
+      uri:
+        url: "https://{{ ansible_host }}/api/fdm/v2/policy/accesspolicies"
+        method: GET
+        user: "{{ ftd_username }}"
+        password: "{{ ftd_password }}"
+        validate_certs: no
+      register: access_policies
+
+    - name: Create Access Control Policy
+      uri:
+        url: "https://{{ ansible_host }}/api/fdm/v2/policy/accesspolicies"
+        method: POST
+        user: "{{ ftd_username }}"
+        password: "{{ ftd_password }}"
+        validate_certs: no
+        body_format: json
+        body:
+          name: "{{ access_policy_name }}"
+          description: "{{ access_policy_description }}"
+          defaultAction: "{{ access_policy_default_action }}"
+          type: "accesspolicy"
+          rules: []
+      register: create_access_policy
+
+    - name: Add Rules to Access Control Policy
+      uri:
+        url: "https://{{ ansible_host }}/api/fdm/v2/policy/accesspolicies/{{ create_access_policy.json.id }}/accessrules"
+        method: POST
+        user: "{{ ftd_username }}"
+        password: "{{ ftd_password }}"
+        validate_certs: no
+        body_format: json
+        body:
+          name: "{{ item.name }}"
+          action: "{{ item.action }}"
+          sourceNetworks:
+            - id: "{{ item.source_network_id }}"
+          destinationNetworks:
+            - id: "{{ item.destination_network_id }}"
+          ruleIndex: "{{ item.rule_index }}"
+        with_items:
+          - "{{ access_policy_rules }}"
+      register: add_access_policy_rules
+
+    - name: Display Results
+      debug:
+        var: add_access_policy_rules.json
