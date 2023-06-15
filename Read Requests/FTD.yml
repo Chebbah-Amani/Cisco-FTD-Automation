@@ -1,0 +1,7 @@
+- name: Generate FTD API access Policies
+  hosts: webservers
+  connection : httpapi
+  become: false
+  gather_facts: no
+  vars:
+    credentials: "admin:Cisco1237'"
